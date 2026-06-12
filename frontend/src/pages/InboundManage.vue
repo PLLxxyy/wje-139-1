@@ -37,6 +37,7 @@ import { inboundApi } from '../api/inbound';
 import { ownerApi } from '../api/owner';
 import StatusBadge from '../components/common/StatusBadge.vue';
 import StepIndicator from '../components/common/StepIndicator.vue';
+import { useApiError } from '../hooks/useApiError';
 import { InboundStatus } from '../types/enums';
 import type { InboundOrder, Owner } from '../types';
 
@@ -44,6 +45,7 @@ const rows = ref<InboundOrder[]>([]);
 const owners = ref<Owner[]>([]);
 const dialogVisible = ref(false);
 const submitting = ref(false);
+const { showError } = useApiError();
 const form = reactive<{ ownerId: number | null; supplier: string; eta: string; remark: string }>({
   ownerId: null,
   supplier: '',
@@ -88,13 +90,7 @@ const handleSubmit = async () => {
     dialogVisible.value = false;
     await loadRows();
   } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : JSON.stringify(e);
-    try {
-      const parsed = JSON.parse(msg);
-      ElMessage.error(parsed.message || msg);
-    } catch {
-      ElMessage.error(msg || '创建失败');
-    }
+    showError(e, '入库单创建失败');
   } finally {
     submitting.value = false;
   }
