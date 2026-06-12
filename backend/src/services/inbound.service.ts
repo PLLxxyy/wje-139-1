@@ -8,7 +8,11 @@ export class InboundService {
   create(payload: any) {
     const owner = this.ownerService.findById(payload.ownerId);
     if (owner && owner.debt > owner.creditLimit) {
-      throw new BadRequestException(`货主【${owner.name}】欠款 ${owner.debt} 已超过授信额度 ${owner.creditLimit}，禁止创建入库单`);
+      throw new BadRequestException({
+        code: 'OWNER_CREDIT_EXCEEDED',
+        message: '货主欠款超过授信额度',
+        data: { name: owner.name, debt: owner.debt, creditLimit: owner.creditLimit }
+      });
     }
     const row = { ...payload, id: this.rows.length + 1 }; this.rows.push(row); return row;
   }
